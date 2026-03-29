@@ -4,6 +4,20 @@ from typing import Literal, Optional
 import torch
 
 
+def _detect_device() -> str:
+    if torch.cuda.is_available():
+        return "cuda"
+    if hasattr(torch.backends, "mps") and torch.backends.mps.is_available():
+        return "mps"
+    return "cpu"
+
+
+def _detect_dtype(device: str) -> torch.dtype:
+    if device == "mps":
+        return torch.float32
+    return torch.bfloat16
+
+
 @dataclass
 class TurboQuantConfig:
     mode: Literal["turbo_mse", "turbo_prod", "qjl", "polar"] = "turbo_prod"
@@ -16,8 +30,12 @@ class TurboQuantConfig:
     rotation_seed: int = 42
     jl_dim: Optional[int] = None
     orthogonalize_jl: bool = True
-    device: str = "cuda"
-    dtype: torch.dtype = field(default=torch.bfloat16)
+    device: str = field(default_factory=_detect_device)
+    dtype: torch.dtype = field(default=None)
+
+    def __post_init__(self):
+        if self.dtype is None:
+            self.dtype = _detect_dtype(self.device)
 
     @property
     def effective_bits(self) -> float:

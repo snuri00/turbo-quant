@@ -1,18 +1,24 @@
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from turbo_quant import TurboQuantConfig, patch_model
+from turbo_quant.config import _detect_device, _detect_dtype
 
 
 def main():
     model_name = "meta-llama/Llama-2-7b-hf"
+    device = _detect_device()
+    model_dtype = _detect_dtype(device)
 
     print(f"Loading model: {model_name}")
+    print(f"Device: {device}, dtype: {model_dtype}")
     tokenizer = AutoTokenizer.from_pretrained(model_name)
     model = AutoModelForCausalLM.from_pretrained(
         model_name,
-        torch_dtype=torch.bfloat16,
-        device_map="auto",
+        torch_dtype=model_dtype,
+        device_map="auto" if device == "cuda" else None,
     )
+    if device != "cuda":
+        model = model.to(device)
 
     config = TurboQuantConfig(
         mode="turbo_prod",
