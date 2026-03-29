@@ -1,0 +1,18 @@
+[build-system]
+requires = ["setuptools>=64", "torch>=2.0.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "turbo_quant"
+version = "0.1.0"
+description = "TurboQuant: High-performance KV cache quantization for LLM inference"
+requires-python = ">=3.9"
+dependencies = [
+    "torch>=2.0.0",
+    "transformers>=4.36.0",
+    "scipy>=1.10.0",
+    "numpy>=1.24.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=7.0"]
